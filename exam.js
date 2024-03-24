@@ -19,14 +19,19 @@ class Customer {
     return this.accounts;
   }
 
+  addAccount(account) {
+    this.accounts.push(account);
+  }
+
   createAccount(bank, accountType) {
-    return bank.createAccount(accountType);
+    return bank.createAccount(accountType, this);
   }
 }
 
 class Account {
   customer = null;
   bank = null;
+  pin = "";
   transactions = [];
   constructor(accountNo, balance) {
     this.accountNo = accountNo;
@@ -47,8 +52,10 @@ class Account {
     }
   }
 
-  createTransaction(transaction) {
+  createTransaction(type, amount, date) {
+    const transaction = new Transaction("T01", type, amount, date);
     this.transactions.push(transaction);
+    return transaction;
   }
 
   getTransaction() {
@@ -73,6 +80,10 @@ class Account {
 
   setBank(bank) {
     this.bank = bank;
+  }
+
+  setPin(pin) {
+    this.pin = pin;
   }
 }
 
@@ -161,23 +172,41 @@ class CurrentAccount extends Account {
 }
 
 class Bank {
+  atms = [];
   constructor(name, address, code) {
     this.name = name;
     this.address = address;
     this.code = code;
   }
 
-  manage() {}
-
-  maintain() {}
-
-  verify() {
-    return true;
+  manage(atm) {
+    this.atms.push(atm);
   }
 
-  openAccount() {}
+  maintain() {
+    // I don't have enough information what bank maintaining.
+  }
 
-  closeAccount() {}
+  verify(customer, name, phone) {
+    if (customer.name === name && customer.phone === phone) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  openAccount(accountType, customer) {
+    const account = this.createAccount(accountType, customer);
+    if (account) {
+      return account;
+    } else {
+      return null;
+    }
+  }
+
+  closeAccount(customer, account) {
+    // I don't have any ideas of this method too so don't ask me and help yourself.
+  }
 
   createTransaction(id, type, amount, date) {
     const transaction = new Transaction(id, type, amount, date);
@@ -196,13 +225,15 @@ class Bank {
     // let account;
     if (accountType === "savingAccount") {
       const account = new SavingAccount(0.5, "s01", 500);
-      account.setCustomer(customer.name);
-      account.setBank(this.name);
+      account.setCustomer(customer);
+      account.setBank(this);
+      customer.addAccount(account);
       return account;
     } else if (accountType === "currentAccount") {
       const account = new CurrentAccount(50000, 0.3, "c01", 500);
-      account.setCustomer(customer.name);
-      account.setBank(this.name);
+      account.setCustomer(customer);
+      account.setBank(this);
+      customer.addAccount(account);
       return account;
     } else {
       return null;
@@ -211,18 +242,81 @@ class Bank {
 }
 
 class ATM {
+  cash = 0;
   constructor(location, managedBy) {
     this.location = location;
     this.managedBy = managedBy;
   }
 
-  //   identify(name, phone) {
-  //     if (name && phone === verify(name, phone)) {
-  //       return true;
-  //     } else {
-  //       return false;
-  //     }
-  //   }
+  identify(customer, name, phone) {
+    if (customer.name === name && customer.phone === phone) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  checkBalance(account) {
+    return account.getBalance();
+  }
+
+  withdraw(cash, account) {
+    if (this.cash >= account.balance) {
+      this.cash -= cash;
+      return account.withdraw(cash);
+    } else {
+      return "This ATM don't have enough cash!";
+    }
+  }
+
+  deposit(cash, account) {
+    this.cash += cash;
+    return account.deposit(cash);
+  }
+
+  changePin(account, newPin) {
+    if (account.pin === newPin) {
+      return "This pin is the same!";
+    } else {
+      account.setPin(newPin);
+      return true;
+    }
+  }
+
+  transfer(account, type, amount, date) {
+    const transaction = new Transaction("T01", type, amount, date);
+    account.transactions.push(transaction);
+    return true;
+  }
+
+  verify(account, pin) {
+    if (account.pin === pin) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  setCash(cash) {
+    this.cash = cash;
+  }
+}
+
+class TransactionType {
+  static DEPOSIT = "Deposit";
+  static WITHDRAW = "Withdraw";
+  static TRANSFER = "Transfer";
+  constructor(name) {
+    this.name = name;
+  }
+}
+
+class AccountType {
+  static SAVING = "savingAccount";
+  static CURRENT = "currentAccount";
+  constructor(name) {
+    this.name = name;
+  }
 }
 
 const main = () => {
@@ -239,7 +333,15 @@ const main = () => {
 
   const bank1 = new Bank("Punsan", "BangPae", "P001");
 
-  console.log(bank1.createAccount("currentAccount", customer1));
+  const account2 = bank1.createAccount("currentAccount", customer1);
+
+  account2.setPin("123456");
+
+  const atm1 = new ATM("Thailand", bank1);
+
+  atm1.setCash(500000);
+
+  console.log(account2.createTransaction("giving", 100, "03/24/2024"));
 };
 
 main();

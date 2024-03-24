@@ -26,12 +26,19 @@ class Customer {
   createAccount(bank, accountType) {
     return bank.createAccount(accountType, this);
   }
+
+  tostring() {
+    return `Customer = [Name: ${this.name}, Addr: ${this.address}, Phone: ${
+      this.phone
+    }, Email: ${this.email}]\nAccount = ${this.getAccount()}`;
+  }
 }
 
 class Account {
   customer = null;
   bank = null;
-  pin = "";
+  pin = "000000";
+  accountType = null;
   transactions = [];
   constructor(accountNo, balance) {
     this.accountNo = accountNo;
@@ -67,7 +74,7 @@ class Account {
   }
 
   getAccountType() {
-    return accountType;
+    return super.accountType;
   }
 
   getCustomer() {
@@ -132,6 +139,7 @@ class Transaction {
 }
 
 class SavingAccount extends Account {
+  accountType = AccountType.SAVING;
   constructor(interestRate, accountNo, balance) {
     super(accountNo, balance);
     this.interestRate = interestRate;
@@ -152,6 +160,7 @@ class SavingAccount extends Account {
 }
 
 class CurrentAccount extends Account {
+  accountType = AccountType.CURRENT;
   constructor(overdraftLimit, overdraftInterest, accountNo, balance) {
     super(accountNo, balance);
     this.overdraftLimit = overdraftLimit;
@@ -183,8 +192,9 @@ class Bank {
     this.atms.push(atm);
   }
 
-  maintain() {
+  maintain(cash, atm) {
     // I don't have enough information what bank maintaining.
+    atm.cash = cash;
   }
 
   verify(customer, name, phone) {
@@ -206,6 +216,7 @@ class Bank {
 
   closeAccount(customer, account) {
     // I don't have any ideas of this method too so don't ask me and help yourself.
+    customer.accounts.pop(account);
   }
 
   createTransaction(id, type, amount, date) {
@@ -223,13 +234,13 @@ class Bank {
 
   createAccount(accountType, customer) {
     // let account;
-    if (accountType === "savingAccount") {
+    if (accountType === AccountType.SAVING) {
       const account = new SavingAccount(0.5, "s01", 500);
       account.setCustomer(customer);
       account.setBank(this);
       customer.addAccount(account);
       return account;
-    } else if (accountType === "currentAccount") {
+    } else if (accountType === AccountType.CURRENT) {
       const account = new CurrentAccount(50000, 0.3, "c01", 500);
       account.setCustomer(customer);
       account.setBank(this);
@@ -327,21 +338,28 @@ const main = () => {
     "654259023@webmail.npru.ac.th"
   );
 
-  const account1 = new Account("A01", 500);
+  // const account1 = new Account("A01", 500);
 
-  const saving1 = new SavingAccount(1.25, account1.accountNo, account1.balance);
+  // const saving1 = new SavingAccount(1.25, account1.accountNo, account1.balance);
 
   const bank1 = new Bank("Punsan", "BangPae", "P001");
 
-  const account2 = bank1.createAccount("currentAccount", customer1);
+  const account2 = bank1.createAccount(AccountType.CURRENT, customer1);
+
+  const account3 = bank1.createAccount(AccountType.SAVING, customer1);
 
   account2.setPin("123456");
 
   const atm1 = new ATM("Thailand", bank1);
 
-  atm1.setCash(500000);
+  // atm1.setCash(500000);
 
-  console.log(account2.createTransaction("giving", 100, "03/24/2024"));
+  bank1.maintain(999999, atm1);
+
+  bank1.closeAccount(customer1, account3);
+
+  // console.log(account2.createTransaction("giving", 100, "03/24/2024"));
+  console.log(account2.getAccountType());
 };
 
 main();

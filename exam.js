@@ -40,9 +40,10 @@ class Account {
   pin = "000000";
   accountType = null;
   transactions = [];
-  constructor(accountNo, balance) {
+  constructor(accountNo, balance, accountType) {
     this.accountNo = accountNo;
     this.balance = balance;
+    this.accountType = accountType;
   }
 
   deposit(amount) {
@@ -74,7 +75,7 @@ class Account {
   }
 
   getAccountType() {
-    return super.accountType;
+    return this.accountType;
   }
 
   getCustomer() {
@@ -140,8 +141,13 @@ class Transaction {
 
 class SavingAccount extends Account {
   accountType = AccountType.SAVING;
-  constructor(interestRate, accountNo, balance) {
-    super(accountNo, balance);
+  constructor(
+    interestRate,
+    accountNo,
+    balance,
+    accountType = AccountType.SAVING
+  ) {
+    super(accountNo, balance, accountType);
     this.interestRate = interestRate;
   }
 
@@ -161,8 +167,14 @@ class SavingAccount extends Account {
 
 class CurrentAccount extends Account {
   accountType = AccountType.CURRENT;
-  constructor(overdraftLimit, overdraftInterest, accountNo, balance) {
-    super(accountNo, balance);
+  constructor(
+    overdraftLimit,
+    overdraftInterest,
+    accountNo,
+    balance,
+    accountType = AccountType.CURRENT
+  ) {
+    super(accountNo, balance, accountType);
     this.overdraftLimit = overdraftLimit;
     this.overdraftInterest = overdraftInterest;
   }

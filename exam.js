@@ -306,10 +306,15 @@ class ATM {
     }
   }
 
-  transfer(account, type, amount, date) {
-    const transaction = new Transaction("T01", type, amount, date);
+  transfer(account, amount, date) {
+    const transaction = new Transaction(
+      "T01",
+      TransactionType.TRANSFER,
+      amount,
+      date
+    );
     account.transactions.push(transaction);
-    return true;
+    return transaction;
   }
 
   verify(account, pin) {
@@ -371,7 +376,7 @@ const main = () => {
   bank1.closeAccount(customer1, account3);
 
   // console.log(account2.createTransaction("giving", 100, "03/24/2024"));
-  console.log(account2.getAccountType());
+  console.log(atm1.transfer(account2, 400, "03/25/2024"));
 };
 
 main();

@@ -51,6 +51,7 @@ class Customer {
 class Account {
   customer = null;
   transactions = [];
+  pin = "123456";
   constructor(accNo, balance, accountType = null) {
     this.accNo = accNo;
     this.balance = balance;
@@ -60,6 +61,13 @@ class Account {
   createTransaction(id, type, amount, date) {
     const transaction = new Transaction(id, type, amount, date);
     this.transactions.push(transaction);
+    if (type === TransactionType.DEPOSIT) {
+      this.balance += amount;
+    } else if (type === TransactionType.WITHDRAW) {
+      this.balance -= amount;
+    } else if (type === TransactionType.TRANSFER) {
+      this.balance -= amount;
+    }
     return transaction;
   }
 
@@ -171,6 +179,7 @@ class Bank {
         AccountType.CURRENT
       );
       currentAccount.setCustomer(customer);
+      customer.accounts.push(currentAccount);
       return currentAccount;
     } else if (accountType === AccountType.SAVING) {
       const savingAccount = new SavingAccount(
@@ -180,32 +189,140 @@ class Bank {
         AccountType.SAVING
       );
       savingAccount.setCustomer(customer);
+      customer.accounts.push(savingAccount);
       return savingAccount;
+    } else {
+      return null;
     }
   }
 }
 
 class ATM {
+  amount = 0;
   constructor(location, manageBy) {
     this.location = location;
     this.manageBy = manageBy;
   }
+
+  setAmount(amount) {
+    this.amount = amount;
+  }
+
+  identify(account, pin) {
+    return account.pin === pin;
+  }
+
+  verify(customer, name, phone) {
+    return customer.name === name && customer.phone === phone;
+  }
+
+  checkBalance(account) {
+    return account.balance;
+  }
+
+  changePin(account, oldPin, newPin) {
+    if (account.pin === oldPin) {
+      account.pin = newPin;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  withdraw(account, amount, date) {
+    account.withdraw(amount, date);
+  }
+
+  deposit(account, amount, date) {
+    account.deposit(amount, date);
+  }
+
+  transfer(account, amount, date, recieve) {
+    if (account.balance >= amount) {
+      account.balance -= amount;
+      const transaction = new Transaction(
+        "T01",
+        TransactionType.TRANSFER,
+        amount,
+        date
+      );
+      recieve.balance += amount;
+    } else {
+      return "Balance is not enough!";
+    }
+  }
 }
 
 class Transaction {
+  status = "";
   constructor(id, type, amount, date) {
     this.id = id;
     this.type = type;
     this.amount = amount;
     this.date = date;
   }
+
+  getTransactionID() {
+    return this.id;
+  }
+
+  getTransactionType() {
+    return this.type;
+  }
+
+  getTransactionDate() {
+    return this.date;
+  }
+
+  getAmount() {
+    return this.amount;
+  }
+
+  getStatus() {
+    return this.status;
+  }
+
+  setTransactionType(type) {
+    this.type = type;
+  }
+
+  setTransactionDate(date) {
+    this.date = date;
+  }
+
+  setAmount(amount) {
+    this.amount = amount;
+  }
+
+  setStatus(status) {
+    this.status = status;
+  }
 }
 
 const main = () => {
-  const a01 = new Account("a01", 600);
+  const tan = new Customer(
+    "Tan",
+    "Tan House",
+    "0985014572",
+    "654259023@webmail.npru.ac.th"
+  );
 
-  a01.withdraw(700, "03/25/2024");
+  const account1 = new Account("a01", 600);
 
-  console.log(a01);
+  const punsanBank = new Bank("Rao Ja Tai Gun Hmode", "SomeWhere", "P001");
+
+  const savingAccount1 = punsanBank.createAccount(tan, AccountType.CURRENT);
+
+  account1.withdraw(700, "03/25/2024");
+
+  console.log(
+    tan.accounts[0].createTransaction(
+      "T01",
+      TransactionType.DEPOSIT,
+      500,
+      "03/25/2024"
+    )
+  );
+  console.log(tan.accounts[0]);
 };
 main();

@@ -44,7 +44,7 @@ class Customer {
   }
 
   createAccount(bank, accountType) {
-    return bank.createAccount(accountType);
+    return bank.createAccount(this, accountType);
   }
 }
 
@@ -59,6 +59,7 @@ class Account {
 
   createTransaction(id, type, amount, date) {
     const transaction = new Transaction(id, type, amount, date);
+    this.transactions.push(transaction);
     return transaction;
   }
 
@@ -116,10 +117,71 @@ class CurrentAccount extends Account {
 }
 
 class Bank {
+  atms = [];
   constructor(name, addr, code) {
     this.name = name;
     this.addr = addr;
     this.code = code;
+  }
+
+  manage(atm) {
+    this.atms.push(atm);
+  }
+
+  maintain(atm, amount) {
+    atm.setAmount(amount);
+  }
+
+  verify(customer, name, phone) {
+    return customer.name === name && customer.phone === phone;
+  }
+
+  openAccount(customer, accNo, balance) {
+    const account = new Account(accNo, balance);
+    account.setCustomer(customer);
+    return account;
+  }
+
+  closeAccount(customer, account) {
+    customer.accounts.pop(account);
+  }
+
+  createTransaction(account, id, type, amount, date) {
+    return account.createTransaction(id, type, amount, date);
+  }
+
+  createCustomer(name, addr, phone, email) {
+    const customer = new Customer(name, addr, phone, email);
+    return customer;
+  }
+
+  createATM(location, manageBy) {
+    const atm = new ATM(location, manageBy);
+    this.atms.push(atm);
+    return atm;
+  }
+
+  createAccount(customer, accountType) {
+    if (accountType === AccountType.CURRENT) {
+      const currentAccount = new CurrentAccount(
+        50000,
+        0.3,
+        "C01",
+        500,
+        AccountType.CURRENT
+      );
+      currentAccount.setCustomer(customer);
+      return currentAccount;
+    } else if (accountType === AccountType.SAVING) {
+      const savingAccount = new SavingAccount(
+        0.5,
+        "S01",
+        500,
+        AccountType.SAVING
+      );
+      savingAccount.setCustomer(customer);
+      return savingAccount;
+    }
   }
 }
 
